@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>The Prode by Cachorros · Mundial 2026</title>
+<title>newcycle ft. The Prode · Mundial 2026</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=Manrope:wght@400;500;700;800;900&display=swap" rel="stylesheet">
 <style>
@@ -252,7 +252,7 @@
 <div id="loading-bar" style="opacity:0"></div>
 
 <nav>
-  <span class="nav-logo" style="font-family:'Bebas Neue',sans-serif;letter-spacing:.06em">THE PRODE <span style="color:var(--green)">BY CACHORROS</span></span>
+  <span class="nav-logo">newcycle <strong>ft.</strong> The Prode</span>
   <div class="nav-right">
     <span class="nav-link" onclick="scrollToSection('section-matches')">partidos</span>
     <span class="nav-link" onclick="scrollToSection('section-bracket')">llaves</span>
@@ -264,12 +264,12 @@
 
 <section class="hero">
   <div class="hero-deco">26</div>
-  <p class="hero-eyebrow fade-up">The Prode by Cachorros · Mundial 2026</p>
+  <p class="hero-eyebrow fade-up">newcycle ft. The Prode · Mundial 2026</p>
   <h1 class="hero-title fade-up-2">
-    THE PRODE<br>
-    <span class="accent">BY CACHORROS.</span>
+    newcycle<br>
+    <span class="accent">ft. The Prode.</span>
   </h1>
-  <p class="hero-sub fade-up-3">Cargá tus pronósticos, competí con los Cachorros y demostrá que sabés más que nadie.</p>
+  <p class="hero-sub fade-up-3">Cargá tus pronósticos, competí con el grupo y demostrá que sabés más que nadie.</p>
   <button class="btn fade-up-3" onclick="scrollToSection('section-matches')">ver partidos →</button>
   <p class="hero-meta">©2026 · people first.</p>
   <p class="hero-meta-right">usa · canada · mexico</p>
@@ -331,7 +331,7 @@
   <div class="join-grid">
     <div class="join-card">
 <label>código del grupo</label>
-      <input type="text" class="join-input" id="join-code" placeholder="CACHORROS26" style="text-transform:uppercase;letter-spacing:.08em">
+      <input type="text" class="join-input" id="join-code" placeholder="MUNDIAL26" style="text-transform:uppercase;letter-spacing:.08em">
       <button class="btn btn-dark" onclick="joinGroup()" style="margin-top:0">entrar al grupo →</button>
       <button class="btn btn-outline" id="logout-btn" onclick="logoutUser()" style="margin-top:.5rem;display:none">cerrar sesión</button>
     </div>
@@ -356,7 +356,7 @@
 </section>
 
 <footer>
-  <p>The Prode by Cachorros · Mundial 2026</p>
+  <p>newcycle ft. The Prode · Mundial 2026</p>
   <p>hecho con ♥ en Buenos Aires</p>
 </footer>
 
@@ -369,7 +369,7 @@
 
 <div class="modal-overlay" id="modal-overlay" onclick="closeModalOutside(event)">
   <div class="modal">
-    <h2 id="modal-title">entrar al<br><span>prode.</span></h2>
+    <h2 id="modal-title">ingresá<br><span>al prode.</span></h2>
     <p id="modal-subtitle">Usá tu mail para entrar. Si es tu primera vez, creamos tu cuenta.</p>
     <div class="modal-field">
       <label>tu mail</label>
@@ -397,8 +397,8 @@
 // ════════════════════════════════════════════════════════════
 //  CONFIG — Reemplazá API_URL con la URL de tu Web App
 // ════════════════════════════════════════════════════════════
-const API_URL = 'https://script.google.com/macros/s/AKfycbys13FJjScmQiK2ttpiJoyODkIr15F2OHiHw6g0s9yIpez4xlMydmpzJlqcZ5LonfBd/exec';
-const CODIGO_GRUPO = 'CACHORROS26';
+const API_URL = 'https://script.google.com/macros/s/AKfycbyH9CyXm3dpm5VocxYTURs0MtekLz3Mk_JtOhmP8oaXD1hSTfxMAgupXdhVccss2Bbs/exec';
+const CODIGO_GRUPO = 'MUNDIAL26';
 
 // ─── BANDERAS ────────────────────────────────────────────────
 const FLAGS = {
@@ -419,7 +419,7 @@ const FLAGS = {
 
 // ─── STATE ───────────────────────────────────────────────────
 let currentPhase = 'grupos';
-let currentUser  = localStorage.getItem('cachorros-prode-user') || null;
+let currentUser  = localStorage.getItem('prode-user') || null;
 let allMatches   = [];
 let prodes       = {};
 let pendientes   = {};
@@ -808,7 +808,7 @@ function showError(msg) {
 
 async function loginAs(name) {
   currentUser = name;
-  localStorage.setItem('cachorros-prode-user', name);
+  localStorage.setItem('prode-user', name);
   updateNavUser();
   showToast(`bienvenido, ${name} ✓`);
   // Cargar datos en segundo plano sin bloquear
@@ -820,7 +820,7 @@ async function loginAs(name) {
 async function logoutUser() {
   await window.firebaseSignOut(window.firebaseAuth);
   currentUser = null;
-  localStorage.removeItem('cachorros-prode-user');
+  localStorage.removeItem('prode-user');
   prodes = {}; pendientes = {};
   updateNavUser(); renderMatches(); renderBoard([]);
   showToast('sesión cerrada');
