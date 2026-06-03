@@ -924,6 +924,47 @@ function openModal() { document.getElementById('modal-overlay').classList.add('o
 function closeModal() { document.getElementById('modal-overlay').classList.remove('open'); }
 function closeModalOutside(e) { if(e.target===document.getElementById('modal-overlay')) closeModal(); }
 
+
+function getBracketLabel(id, side) {
+  const labels = {
+    d1:  { local:'1° Grupo A', visitante:'2° Grupo B' },
+    d2:  { local:'1° Grupo C', visitante:'2° Grupo D' },
+    d3:  { local:'1° Grupo E', visitante:'2° Grupo F' },
+    d4:  { local:'1° Grupo G', visitante:'2° Grupo H' },
+    d5:  { local:'1° Grupo I', visitante:'2° Grupo J' },
+    d6:  { local:'1° Grupo K', visitante:'2° Grupo L' },
+    d7:  { local:'1° Grupo B', visitante:'2° Grupo A' },
+    d8:  { local:'1° Grupo D', visitante:'2° Grupo C' },
+    d9:  { local:'1° Grupo F', visitante:'2° Grupo E' },
+    d10: { local:'1° Grupo H', visitante:'2° Grupo G' },
+    d11: { local:'1° Grupo J', visitante:'2° Grupo I' },
+    d12: { local:'1° Grupo L', visitante:'2° Grupo K' },
+    d13: { local:'3° mejor (TBD)', visitante:'3° mejor (TBD)' },
+    d14: { local:'3° mejor (TBD)', visitante:'3° mejor (TBD)' },
+    d15: { local:'3° mejor (TBD)', visitante:'3° mejor (TBD)' },
+    d16: { local:'3° mejor (TBD)', visitante:'3° mejor (TBD)' },
+    o1:  { local:'Gan. D1', visitante:'Gan. D2' },
+    o2:  { local:'Gan. D3', visitante:'Gan. D4' },
+    o3:  { local:'Gan. D5', visitante:'Gan. D6' },
+    o4:  { local:'Gan. D7', visitante:'Gan. D8' },
+    o5:  { local:'Gan. D9', visitante:'Gan. D10' },
+    o6:  { local:'Gan. D11', visitante:'Gan. D12' },
+    o7:  { local:'Gan. D13', visitante:'Gan. D14' },
+    o8:  { local:'Gan. D15', visitante:'Gan. D16' },
+    q1:  { local:'Gan. O1', visitante:'Gan. O2' },
+    q2:  { local:'Gan. O3', visitante:'Gan. O4' },
+    q3:  { local:'Gan. O5', visitante:'Gan. O6' },
+    q4:  { local:'Gan. O7', visitante:'Gan. O8' },
+    s1:  { local:'Gan. Q1', visitante:'Gan. Q2' },
+    s2:  { local:'Gan. Q3', visitante:'Gan. Q4' },
+    tp1: { local:'Per. S1', visitante:'Per. S2' },
+    f1:  { local:'Gan. S1', visitante:'Gan. S2' },
+  };
+  const entry = labels[id.toLowerCase()];
+  if (!entry) return '<span style="opacity:.4;font-style:italic">Por definir</span>';
+  return `<span style="opacity:.5;font-style:italic">${entry[side]}</span>`;
+}
+
 // Esperar a que Firebase confirme el estado de sesión antes de iniciar
 function waitForFirebase(callback) {
   let attempts = 0;
