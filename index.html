@@ -457,6 +457,7 @@
       <label>código del grupo</label>
       <input type="text" class="join-input" id="join-code" placeholder="CACHORROS26" style="text-transform:uppercase;letter-spacing:.08em">
       <button class="btn btn-ink" onclick="joinGroup()" style="margin-top:0">entrar al grupo →</button>
+      <button class="btn btn-outline" id="logout-btn" onclick="logoutUser()" style="margin-top:.5rem;display:none;border-color:rgba(242,234,216,.4);color:rgba(242,234,216,.7)">cerrar sesión</button>
     </div>
     <div class="join-info">
       <p>Ingresá con el código que te pasaron. Una vez adentro podés cargar tus pronósticos antes de cada partido.</p>
@@ -509,7 +510,7 @@
     <div id="modal-error" style="color:#c53d16;font-size:.7rem;margin-top:.5rem;display:none"></div>
     <div class="modal-actions">
       <button class="btn" id="modal-btn-login" onclick="loginUser()">entrar →</button>
-      <button class="btn btn-outline" id="modal-btn-register" onclick="switchToRegister()" style="display:none">crear cuenta →</button>
+      <button class="btn btn-outline" id="modal-btn-register" onclick="loginUser()" style="display:none">crear cuenta →</button>
       <button class="btn btn-outline" onclick="closeModal()">cancelar</button>
     </div>
     <p style="font-size:.65rem;color:var(--muted);margin-top:1rem;cursor:pointer" id="modal-switch-link" onclick="switchToRegister()">¿Primera vez? Crear cuenta</p>
@@ -597,8 +598,17 @@ async function autoRefresh() {
 function setStatus(msg) { const el = document.getElementById('status-text'); if(el) el.textContent = msg; }
 function updateNavUser() {
   const el = document.getElementById('nav-user');
-  if (currentUser) { el.textContent = currentUser + ' (salir)'; el.style.cursor='pointer'; el.onclick=logoutUser; }
-  else { el.textContent = '+ entrar'; el.onclick = openModal; }
+  const logoutBtn = document.getElementById('logout-btn');
+  if (currentUser) {
+    el.textContent = currentUser + ' (salir)';
+    el.style.cursor = 'pointer';
+    el.onclick = logoutUser;
+    if (logoutBtn) logoutBtn.style.display = 'inline-block';
+  } else {
+    el.textContent = '+ entrar';
+    el.onclick = openModal;
+    if (logoutBtn) logoutBtn.style.display = 'none';
+  }
 }
 
 function renderMatches() {
@@ -830,18 +840,29 @@ async function loginUser() {
   errorEl.style.display = 'none';
   if (!email || !password) { showError('Completá mail y contraseña'); return; }
 
+  // Mostrar loading en el botón activo
+  const activeBtn = isRegisterMode
+    ? document.getElementById('modal-btn-register')
+    : document.getElementById('modal-btn-login');
+  const originalText = activeBtn.textContent;
+  activeBtn.textContent = isRegisterMode ? 'creando cuenta...' : 'entrando...';
+  activeBtn.disabled = true;
+
   if (isRegisterMode) {
     const name = document.getElementById('modal-name').value.trim();
-    if (!name) { showError('Ponés tu nombre para el prode'); return; }
+    if (!name) { showError('Ponés tu nombre para el prode'); activeBtn.textContent = originalText; activeBtn.disabled = false; return; }
     try {
       const cred = await window.firebaseCreateUser(window.firebaseAuth, email, password);
       await window.firebaseUpdateProfile(cred.user, { displayName: name });
       await loginAs(name);
       closeModal();
     } catch(e) {
+      console.error('Register error:', e.code, e.message);
       if (e.code === 'auth/email-already-in-use') showError('Ese mail ya tiene cuenta. Iniciá sesión.');
       else if (e.code === 'auth/weak-password') showError('La contraseña debe tener al menos 6 caracteres.');
-      else showError('Error al crear cuenta: ' + e.message);
+      else showError('Error: ' + e.code + ' — ' + e.message);
+      activeBtn.textContent = originalText;
+      activeBtn.disabled = false;
     }
   } else {
     try {
@@ -850,8 +871,11 @@ async function loginUser() {
       await loginAs(name);
       closeModal();
     } catch(e) {
+      console.error('Login error:', e.code, e.message);
       if (e.code === 'auth/user-not-found' || e.code === 'auth/invalid-credential') showError('Mail o contraseña incorrectos.');
-      else showError('Error: ' + e.message);
+      else showError('Error: ' + e.code + ' — ' + e.message);
+      activeBtn.textContent = originalText;
+      activeBtn.disabled = false;
     }
   }
 }
