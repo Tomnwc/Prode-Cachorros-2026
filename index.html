@@ -574,21 +574,25 @@ async function apiPost(body) {
 
 async function init() {
   updateNavUser();
+  // Cargar partidos primero (sin pronósticos) para mostrar algo rápido
   try {
     allMatches = await apiGet({ action:'getPartidos' });
-    if (currentUser) prodes = await apiGet({ action:'getPronosticos', usuario:currentUser });
     setStatus('actualizado hace un momento');
     renderMatches();
     renderBracket();
-    await loadBoard();
-    setInterval(autoRefresh, 5 * 60 * 1000);
   } catch(e) {
     setStatus('modo demo — configurá el backend para datos reales');
     allMatches = DEMO_MATCHES;
     renderMatches();
     renderBracket();
-    renderBoard([]);
   }
+  // Cargar pronósticos y tabla en background
+  if (currentUser) {
+    try { prodes = await apiGet({ action:'getPronosticos', usuario:currentUser }); } catch(e) { prodes = {}; }
+    renderMatches();
+  }
+  loadBoard();
+  setInterval(autoRefresh, 5 * 60 * 1000);
 }
 
 async function autoRefresh() {
@@ -893,9 +897,12 @@ function showError(msg) {
 async function loginAs(name) {
   currentUser = name;
   localStorage.setItem('cachorros-prode-user', name);
-  try { prodes = await apiGet({ action:'getPronosticos', usuario:name }); } catch(e) { prodes = {}; }
-  updateNavUser(); renderMatches(); await loadBoard();
+  updateNavUser();
   showToast(`bienvenido, ${name} ✓`);
+  // Cargar datos en segundo plano sin bloquear
+  try { prodes = await apiGet({ action:'getPronosticos', usuario:name }); } catch(e) { prodes = {}; }
+  renderMatches();
+  loadBoard(); // no await — carga en background
 }
 
 async function logoutUser() {
