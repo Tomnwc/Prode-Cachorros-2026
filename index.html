@@ -215,12 +215,27 @@
   window.firebaseUpdateProfile = (user, profile) => user.updateProfile(profile);
 
   fbAuth.onAuthStateChanged((user) => {
+    // Solo actualizar estado silenciosamente, sin llamar loginAs automáticamente
     if (user) {
       window.currentUser = user.displayName || user.email;
       window._firebaseUser = user;
+      // Actualizar UI sin llamar a la API
+      const el = document.getElementById('nav-user');
+      const logoutBtn = document.getElementById('logout-btn');
+      if (el) {
+        el.textContent = window.currentUser + ' (salir)';
+        el.style.cursor = 'pointer';
+        el.onclick = window.logoutUser;
+      }
+      if (logoutBtn) logoutBtn.style.display = 'inline-block';
     } else {
       window.currentUser = null;
       window._firebaseUser = null;
+      const el = document.getElementById('nav-user');
+      if (el) {
+        el.textContent = '+ ingresar';
+        el.onclick = window.openModal;
+      }
     }
   });
 </script>
