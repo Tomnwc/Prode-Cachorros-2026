@@ -371,6 +371,7 @@
     <span class="nav-link" onclick="scrollToSection('section-matches')">partidos</span>
     <span class="nav-link" onclick="scrollToSection('section-bracket')">llaves</span>
     <span class="nav-link" onclick="scrollToSection('section-board')">tabla</span>
+    <span class="nav-link" onclick="scrollToSection('section-stats')" id="nav-stats" style="display:none">mis stats</span>
     <span class="nav-link" onclick="scrollToSection('section-join')">unirse</span>
     <span class="nav-user" id="nav-user" onclick="openModal()">+ ingresar</span>
   </div>
@@ -436,6 +437,42 @@
       <tr><td colspan="4" style="color:var(--muted);padding:2rem;font-size:.85rem">Cargando tabla...</td></tr>
     </tbody>
   </table>
+</section>
+
+<!-- STATS -->
+<section id="section-stats" style="display:none">
+  <div class="section-label">tus stats</div>
+  <h2 class="section-title">cómo<br>venís vos.</h2>
+  <div id="stats-container" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:1px;background:var(--border)">
+    <div class="stat-card" style="background:var(--bg-dark);padding:2rem">
+      <div class="section-label">puntos totales</div>
+      <div style="font-family:'Manrope',sans-serif;font-weight:900;font-size:3.5rem;color:var(--green)" id="stat-pts">—</div>
+    </div>
+    <div class="stat-card" style="background:var(--bg-dark);padding:2rem">
+      <div class="section-label">exactos</div>
+      <div style="font-family:'Manrope',sans-serif;font-weight:900;font-size:3.5rem;color:var(--white)" id="stat-exactos">—</div>
+      <div style="font-size:.7rem;color:var(--muted)" id="stat-exactos-pct"></div>
+    </div>
+    <div class="stat-card" style="background:var(--bg-dark);padding:2rem">
+      <div class="section-label">correctos</div>
+      <div style="font-family:'Manrope',sans-serif;font-weight:900;font-size:3.5rem;color:var(--white)" id="stat-correctos">—</div>
+      <div style="font-size:.7rem;color:var(--muted)" id="stat-correctos-pct"></div>
+    </div>
+    <div class="stat-card" style="background:var(--bg-dark);padding:2rem">
+      <div class="section-label">posición en el grupo</div>
+      <div style="font-family:'Manrope',sans-serif;font-weight:900;font-size:3.5rem;color:var(--white)" id="stat-pos">—</div>
+      <div style="font-size:.7rem;color:var(--muted)" id="stat-vs-avg"></div>
+    </div>
+    <div class="stat-card" style="background:var(--bg-dark);padding:2rem">
+      <div class="section-label">pronósticos cargados</div>
+      <div style="font-family:'Manrope',sans-serif;font-weight:900;font-size:3.5rem;color:var(--white)" id="stat-cargados">—</div>
+    </div>
+    <div class="stat-card" style="background:var(--bg-dark);padding:2rem">
+      <div class="section-label">racha actual</div>
+      <div style="font-family:'Manrope',sans-serif;font-weight:900;font-size:3.5rem;color:var(--white)" id="stat-racha">—</div>
+      <div style="font-size:.7rem;color:var(--muted)" id="stat-racha-label"></div>
+    </div>
+  </div>
 </section>
 
 <!-- JOIN -->
@@ -572,6 +609,7 @@ async function init() {
     renderMatches();
   }
   loadBoard();
+  if (currentUser) loadStats();
   setInterval(autoRefresh, 5 * 60 * 1000);
 }
 
@@ -963,12 +1001,64 @@ async function resetPassword() {
   }
 }
 
+async function loadStats() {
+  if (!currentUser) return;
+  try {
+    const tabla = await apiGet({ action:'getTabla' });
+    const myStats = tabla.find(p => p.name === currentUser);
+    if (!myStats) return;
+
+    const pos = tabla.findIndex(p => p.name === currentUser) + 1;
+    const avgPts = tabla.length > 0 ? (tabla.reduce((s,p) => s+p.pts, 0) / tabla.length).toFixed(1) : 0;
+    const diffAvg = (myStats.pts - avgPts).toFixed(1);
+    const pctExactos = myStats.pronosticados > 0 ? Math.round(myStats.exactos / myStats.pronosticados * 100) : 0;
+    const pctCorrectos = myStats.pronosticados > 0 ? Math.round(myStats.correctos / myStats.pronosticados * 100) : 0;
+
+    // Calcular racha
+    const myProdes = Object.entries(prodes);
+    const partidos = allMatches.filter(m => m['Goles Local'] !== '' && m['Goles Visitante'] !== '');
+    let racha = 0;
+    let rachaDir = '';
+    for (let i = partidos.length - 1; i >= 0; i--) {
+      const p = partidos[i];
+      const pred = prodes[p.ID];
+      if (!pred || pred.home === '' || pred.away === '') break;
+      const rL = Number(p['Goles Local']), rV = Number(p['Goles Visitante']);
+      const pL = Number(pred.home), pA = Number(pred.away);
+      const gR = rL > rV ? 'L' : rV > rL ? 'V' : 'E';
+      const gP = pL > pA ? 'L' : pA > pL ? 'V' : 'E';
+      const acerto = gR === gP;
+      if (racha === 0) { rachaDir = acerto ? 'aciertos' : 'fallos'; racha = 1; }
+      else if ((acerto && rachaDir === 'aciertos') || (!acerto && rachaDir === 'fallos')) racha++;
+      else break;
+    }
+
+    document.getElementById('stat-pts').textContent = myStats.pts;
+    document.getElementById('stat-exactos').textContent = myStats.exactos;
+    document.getElementById('stat-exactos-pct').textContent = pctExactos + '% de los pronosticados';
+    document.getElementById('stat-correctos').textContent = myStats.correctos;
+    document.getElementById('stat-correctos-pct').textContent = pctCorrectos + '% de los pronosticados';
+    document.getElementById('stat-pos').textContent = pos + '°';
+    document.getElementById('stat-vs-avg').textContent = diffAvg > 0 ? '+' + diffAvg + ' pts vs el promedio' : diffAvg + ' pts vs el promedio';
+    document.getElementById('stat-cargados').textContent = myStats.pronosticados;
+    document.getElementById('stat-racha').textContent = racha;
+    document.getElementById('stat-racha-label').textContent = 'seguidos de ' + rachaDir;
+
+    document.getElementById('section-stats').style.display = 'block';
+    document.getElementById('nav-stats').style.display = 'inline';
+  } catch(e) {
+    console.error('Error loading stats:', e);
+  }
+}
+
 async function logoutUser() {
   await window.firebaseSignOut(window.firebaseAuth);
   currentUser = null;
   localStorage.removeItem('cachorros-prode-user');
   prodes = {}; pendientes = {};
   updateNavUser(); renderMatches(); renderBoard([]);
+  document.getElementById('section-stats').style.display = 'none';
+  document.getElementById('nav-stats').style.display = 'none';
   showToast('sesión cerrada');
 }
 
@@ -1067,11 +1157,13 @@ function waitForFirebase(callback) {
   }, 100);
 }
 
-waitForFirebase(() => {
+waitForFirebase(async () => {
   if (window.currentUser) {
     updateNavUser();
+    try { prodes = await apiGet({ action:'getPronosticos', usuario:window.currentUser }); } catch(e) { prodes = {}; }
   }
-  init();
+  await init();
+  if (window.currentUser) loadStats();
 });
 </script>
 </body>
